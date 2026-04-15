@@ -1,0 +1,6 @@
+@ProducerService_HostAddress = http://localhost:5177
+
+POST {{ProducerService_HostAddress}}/send/
+Accept: application/json
+
+###

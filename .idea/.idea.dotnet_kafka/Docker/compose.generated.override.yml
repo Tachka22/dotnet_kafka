@@ -1,0 +1,40 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  consumerservice:
+    build:
+      context: "/home/vladislav/RiderProjects/dotnet_kafka"
+      dockerfile: "ConsumerService/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/ConsumerService.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "consumerservice:dev"
+    ports: []
+    volumes:
+    - "/home/vladislav/RiderProjects/dotnet_kafka/ConsumerService:/app:rw"
+    - "/home/vladislav/RiderProjects/dotnet_kafka:/src:rw"
+    - "/home/vladislav/.nuget/packages:/home/app/.nuget/packages"
+    working_dir: "/app"
+  producerservice:
+    build:
+      context: "/home/vladislav/RiderProjects/dotnet_kafka"
+      dockerfile: "ProducerService/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/ProducerService.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "producerservice:dev"
+    ports: []
+    volumes:
+    - "/home/vladislav/RiderProjects/dotnet_kafka/ProducerService:/app:rw"
+    - "/home/vladislav/RiderProjects/dotnet_kafka:/src:rw"
+    - "/home/vladislav/.nuget/packages:/home/app/.nuget/packages"
+    working_dir: "/app"
