@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using KafkaSchemas;
 using ProducerService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,14 +8,20 @@ builder.Services.AddSingleton<IProducer, KafkaProducer>();
 
 var app = builder.Build();
 
-var producer = app.Services.GetRequiredService<IProducer>();
+app.MapPost("/send", async (MessageRequest request, IProducer producer) =>
+    {
+        var avroMessage = new MessageDto 
+        { 
+            Content = request.Content 
+        };
 
-await producer.SendMessageAsync(new MessageDto("Hello World"));
-
-// app.MapPost("/send", async ( MessageDto request) =>
-//     {
-//         await producer.SendMessageAsync(request);
-//     })
-//     .WithName("SendMessage");
+        await producer.SendMessageAsync(avroMessage);
+        
+        return Results.Ok(new { status = "Sent", content = request.Content });
+    })
+    .WithName("SendMessage");
 
 app.Run();
+
+public record MessageRequest(string Content);
+

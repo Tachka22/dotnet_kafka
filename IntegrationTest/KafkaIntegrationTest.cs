@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ProducerService;
 using Testcontainers.Kafka;
-using MessageDto = ProducerService.MessageDto;
 
 namespace IntegrationTest;
 
@@ -52,10 +51,14 @@ public class KafkaIntegrationTest : IAsyncLifetime
         var producerLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<KafkaProducer>();
         var producerOptions = Options.Create(producerConfig);
         
+        
         // Act - отправляем сообщение через продюсер
         using (var producer = new KafkaProducer(producerLogger, producerOptions))
         {
-            await producer.SendMessageAsync(new MessageDto(messageContent));
+            await producer.SendMessageAsync(new MessageDto 
+            { 
+                Content = "Hello Avro!" 
+            });
         }
 
         // Создаём консьюмер и читаем сообщение

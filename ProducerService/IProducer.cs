@@ -1,3 +1,5 @@
+using KafkaSchemas;
+
 namespace ProducerService;
 
 public interface IProducer

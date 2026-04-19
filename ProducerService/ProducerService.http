@@ -1,6 +1,13 @@
-@ProducerService_HostAddress = http://localhost:5177
+@ProducerService_HostAddress = http://localhost:8080
 
-POST {{ProducerService_HostAddress}}/send/
-Accept: application/json
+POST {{ProducerService_HostAddress}}/send
+Content-Type: application/json
+
+{
+  "content": "Hello!"
+}
 
 ###
+# curl -X POST http://localhost:8080/send 
+#     -H "Content-Type: application/json" 
+#     -d '{"content": "Hello!"}'

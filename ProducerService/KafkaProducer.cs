@@ -1,29 +1,54 @@
-using System.Text.Json;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
+using KafkaSchemas;
 using Microsoft.Extensions.Options;
 
 namespace ProducerService;
 
-public class KafkaProducer(
-    ILogger<KafkaProducer> logger,
-    IOptions<ProducerConfig> config) : IProducer, IDisposable
+public class KafkaProducer : IProducer
 {
-    private readonly IProducer<Null, string> _producer = new ProducerBuilder<Null, string>(config.Value).Build();
-    private readonly ILogger<KafkaProducer> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private const string Topic = "messages";
+    private readonly IProducer<Null, MessageDto> _producer;
+    private readonly ISchemaRegistryClient _schemaRegistryClient;
+    private readonly ILogger<KafkaProducer> _logger;
+    private readonly string _mainTopic;
+
+    public KafkaProducer(
+        ILogger<KafkaProducer> logger,
+        IOptions<ProducerConfig> config,
+        IConfiguration configuration)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+       
+        var schemaRegistryUrl = configuration["SchemaRegistryUrl"] ?? throw new ArgumentNullException("SchemaRegistryUrl is not configured");
+        
+        _schemaRegistryClient = new CachedSchemaRegistryClient(new SchemaRegistryConfig
+        {
+            Url = schemaRegistryUrl 
+        });
+        
+        _producer = new ProducerBuilder<Null, MessageDto>(config.Value)
+            .SetValueSerializer(new AvroSerializer<MessageDto>(_schemaRegistryClient))
+            .Build();
+        
+        _mainTopic = configuration["KafkaProducer:MainTopic"] ?? "messages";
+    }
+
+    public KafkaProducer(ISchemaRegistryClient schemaRegistryClient)
+    {
+        _schemaRegistryClient = schemaRegistryClient;
+    }
 
     public async Task SendMessageAsync(MessageDto messageDto)
     {
-       var message = JsonSerializer.Serialize(messageDto);
-       
        try
        {
-           var result = await _producer.ProduceAsync(Topic, new Message<Null, string>()
+           var result = await _producer.ProduceAsync(_mainTopic, new Message<Null, MessageDto>()
            {
-               Value = message
+               Value = messageDto
            });
 
-           _logger.LogInformation("Message delivered to {Topic} [{Partition}]", result.Topic, result.Partition);
+           _logger.LogInformation("Avro message delivered to {Topic} [{Partition}] at offset {Offset}", result.Topic, result.Partition, result.Offset);
        }
        catch (ProduceException<string, string> ex)
        {
@@ -34,5 +59,6 @@ public class KafkaProducer(
     public void Dispose()
     {
         _producer.Dispose();
+        _schemaRegistryClient.Dispose();
     }
 }

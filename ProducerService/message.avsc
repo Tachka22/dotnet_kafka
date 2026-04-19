@@ -1,0 +1,11 @@
+{
+  "namespace": "KafkaSchemas",
+  "type": "record",
+  "name": "MessageDto",
+  "fields": [
+    { 
+      "name": "Content",
+      "type": "string"
+    }
+  ]
+}
